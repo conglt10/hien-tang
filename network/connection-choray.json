@@ -1,0 +1,44 @@
+{
+  "name": "choray-network",
+  "version": "1.0.0",
+  "client": {
+    "organization": "Choray",
+    "connection": {
+      "timeout": {
+        "peer": {
+          "endorser": "300"
+        }
+      }
+    }
+  },
+  "organizations": {
+    "Choray": {
+      "mspid": "ChorayMSP",
+      "peers": ["peer0.choray.hientang.com"],
+      "certificateAuthorities": ["ca.choray.hientang.com"]
+    }
+  },
+  "peers": {
+    "peer0.choray.hientang.com": {
+      "url": "grpc://localhost:8051",
+      "tlsCACerts": {
+        "path": "crypto-config/peerOrganizations/choray.hientang.com/tlsca/tlsca.choray.hientang.com-cert.pem"
+      },
+      "grpcOptions": {
+        "ssl-target-name-override": "peer0.choray.hientang.com"
+      }
+    }
+  },
+  "certificateAuthorities": {
+    "ca.choray.hientang.com": {
+      "url": "http://localhost:8054",
+      "caName": "ca.choray.hientang.com",
+      "tlsCACerts": {
+        "path": "crypto-config/peerOrganizations/choray.hientang.com/tlsca/tlsca.choray.hientang.com-cert.pem"
+      },
+      "httpOptions": {
+        "verify": false
+      }
+    }
+  }
+}
