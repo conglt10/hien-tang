@@ -1,0 +1,44 @@
+{
+  "name": "bachmai-network",
+  "version": "1.0.0",
+  "client": {
+    "organization": "Bachmai",
+    "connection": {
+      "timeout": {
+        "peer": {
+          "endorser": "300"
+        }
+      }
+    }
+  },
+  "organizations": {
+    "Bachmai": {
+      "mspid": "BachmaiMSP",
+      "peers": ["peer0.bachmai.hientang.com"],
+      "certificateAuthorities": ["ca.bachmai.hientang.com"]
+    }
+  },
+  "peers": {
+    "peer0.bachmai.hientang.com": {
+      "url": "grpc://localhost:7051",
+      "tlsCACerts": {
+        "path": "crypto-config/peerOrganizations/bachmai.hientang.com/tlsca/tlsca.bachmai.hientang.com-cert.pem"
+      },
+      "grpcOptions": {
+        "ssl-target-name-override": "peer0.bachmai.hientang.com"
+      }
+    }
+  },
+  "certificateAuthorities": {
+    "ca.bachmai.hientang.com": {
+      "url": "http://localhost:7054",
+      "caName": "ca.bachmai.hientang.com",
+      "tlsCACerts": {
+        "path": "crypto-config/peerOrganizations/bachmai.hientang.com/tlsca/tlsca.bachmai.hientang.com-cert.pem"
+      },
+      "httpOptions": {
+        "verify": false
+      }
+    }
+  }
+}
