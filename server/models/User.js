@@ -14,7 +14,8 @@ const UserSchema = new Schema({
   },
   password: {
     type: String
-  }
+  },
+  role: Number
 });
 
 UserSchema.pre('save', function(next) {

@@ -18,16 +18,17 @@ mongoose.connect(
     if (error) console.log(error);
   }
 );
+
 mongoose.set('useCreateIndex', true);
 /**
  * Create admin for Org
- * @param  {String} orgMSP Org Name (default: student)
+ * @param  {String} orgMSP Org Name (default: bachmai)
  * @param  {String} username Admin Username (default: admin)
  */
 
 async function main() {
   try {
-    let orgMSP = 'student';
+    let orgMSP = 'bachmai';
 
     if (argv.orgMSP) {
       orgMSP = argv.orgMSP.toString();
@@ -41,7 +42,7 @@ async function main() {
     const ccp = JSON.parse(ccpJSON);
 
     // Create a new CA client for interacting with the CA.
-    const caInfo = ccp.certificateAuthorities[`ca.${orgMSP}.certificate.com`];
+    const caInfo = ccp.certificateAuthorities[`ca.${orgMSP}.hientang.com`];
     const caTLSCACertsPath = path.resolve(__dirname, '../..', 'network', caInfo.tlsCACerts.path);
     const caTLSCACerts = fs.readFileSync(caTLSCACertsPath);
     const ca = new FabricCAServices(
@@ -65,18 +66,18 @@ async function main() {
 
     let user;
 
-    if (orgMSP === 'student') {
+    if (orgMSP === 'bachmai') {
       user = new User({
         username: process.env.ADMIN_STUDENT_USERNAME,
         password: process.env.ADMIN_STUDENT_PASSWORD,
-        role: USER_ROLES.ADMIN_STUDENT
+        role: USER_ROLES.ADMIN_BACHMAI
       });
     }
-    if (orgMSP === 'academy') {
+    if (orgMSP === 'choray') {
       user = new User({
         username: process.env.ADMIN_ACADEMY_USERNAME,
         password: process.env.ADMIN_ACADEMY_PASSWORD,
-        role: USER_ROLES.ADMIN_ACADEMY
+        role: USER_ROLES.ADMIN_CHORAY
       });
     }
 
