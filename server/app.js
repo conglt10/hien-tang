@@ -4,10 +4,15 @@ const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 const mongoose = require('mongoose');
-const checkJWT = require('./middlewares/check-jwt');
+const helmet = require('helmet');
+//const checkJWT = require('./middlewares/check-jwt');
+
 const app = express();
 
 require('dotenv').config();
+
+const authRoutes = require('./routes/auth');
+const registerRoutes = require('./routes/register');
 
 // Connect database
 mongoose.connect(
@@ -18,6 +23,9 @@ mongoose.connect(
   }
 );
 mongoose.set('useCreateIndex', true);
+
+// security with helmet
+app.use(helmet());
 
 // show log
 app.use(logger('dev'));
@@ -42,6 +50,10 @@ app.use(
     credentials: true // allow session cookie from browser to pass through
   })
 );
+
+// Set up routes
+app.use('/auth', authRoutes);
+app.use('/register', registerRoutes);
 
 // catch 404 and forward to error handler
 app.use((req, res, next) => {
