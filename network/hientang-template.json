@@ -1,0 +1,60 @@
+{
+  "name": "hientang",
+  "version": "1.0.0",
+  "license": "Apache-2.0",
+  "client": {
+    "tlsEnable": false,
+    "adminUser": "admin",
+    "adminPassword": "adminpw",
+    "enableAuthentication": false,
+    "organization": "Bachmai",
+    "connection": {
+      "timeout": {
+        "peer": {
+          "endorser": "300"
+        },
+        "orderer": "300"
+      }
+    }
+  },
+  "channels": {
+    "hientangchannel": {
+      "peers": {
+        "peer0.bachmai.hientang.com": {}
+      },
+      "connection": {
+        "timeout": {
+          "peer": {
+            "endorser": "6000",
+            "eventHub": "6000",
+            "eventReg": "6000"
+          }
+        }
+      }
+    }
+  },
+  "organizations": {
+    "BachmaiMSP": {
+      "mspid": "BachmaiMSP",
+      "fullpath": true,
+      "adminPrivateKey": {
+        "path": "../network/crypto-config/peerOrganizations/bachmai.hientang.com/users/Admin@bachmai.hientang.com/msp/keystore/${KEY}"
+      },
+      "signedCert": {
+        "path": "../network/crypto-config/peerOrganizations/bachmai.hientang.com/users/Admin@bachmai.hientang.com/msp/signcerts/Admin@bachmai.hientang.com-cert.pem"
+      }
+    }
+  },
+  "peers": {
+    "peer0.bachmai.hientang.com": {
+      "tlsCACerts": {
+        "path": "../network/crypto-config/peerOrganizations/bachmai.hientang.com/peers/peer0.bachmai.hientang.com/tls/ca.crt"
+      },
+      "url": "grpc://localhost:7051",
+      "eventUrl": "grpc://localhost:7053",
+      "grpcOptions": {
+        "ssl-target-name-override": "peer0.bachmai.hientang.com"
+      }
+    }
+  }
+}

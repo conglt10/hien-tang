@@ -1,24 +1,19 @@
-## Install Samples, Binaries and Docker Images
+## Build Network
 
-```bash
-curl -sSL http://bit.ly/2ysbOFE | bash -s 1.4.0
-cp -r fabric-samples/bin
-```
-
-## Generate channel congiguration and achor peer for Orgs
+### Step 1:
 
 ```bash
 mkdir channel-artifacts
 ```
 
-## Start network
+### Step 2:
 
 ```bash
-./upNetwork.sh
+./network.sh generate
 ```
 
-## Stop network
+### Step 3:
 
 ```bash
-./stop.sh
+./network.sh up -a true
 ```

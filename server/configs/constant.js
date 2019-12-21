@@ -1,6 +1,7 @@
 module.exports.USER_ROLES = {
-  ROLES: [1, 2, 3],
+  ROLES: [1, 2, 4],
   ADMIN_BACHMAI: 1,
   ADMIN_CHORAY: 2,
-  DOCTOR: 3
+  DOCTOR_BACHMAI: 3,
+  DOCTOR_CHORAY: 4
 };

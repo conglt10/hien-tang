@@ -1,0 +1,76 @@
+# Copyright IBM Corp. All Rights Reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+version: '2'
+
+volumes:
+  orderer2.hientang.com:
+  orderer3.hientang.com:
+  orderer4.hientang.com:
+  orderer5.hientang.com:
+
+networks:
+  hientang:
+
+services:
+  orderer2.hientang.com:
+    extends:
+      file: base/peer-base.yaml
+      service: orderer-base
+    container_name: orderer2.hientang.com
+    networks:
+      - hientang
+    volumes:
+      - ./channel-artifacts/genesis.block:/var/hyperledger/orderer/orderer.genesis.block
+      - ./crypto-config/ordererOrganizations/hientang.com/orderers/orderer2.hientang.com/msp:/var/hyperledger/orderer/msp
+      - ./crypto-config/ordererOrganizations/hientang.com/orderers/orderer2.hientang.com/tls/:/var/hyperledger/orderer/tls
+      - orderer2.hientang.com:/var/hyperledger/production/orderer
+    ports:
+      - 8050:7050
+
+  orderer3.hientang.com:
+    extends:
+      file: base/peer-base.yaml
+      service: orderer-base
+    container_name: orderer3.hientang.com
+    networks:
+      - hientang
+    volumes:
+      - ./channel-artifacts/genesis.block:/var/hyperledger/orderer/orderer.genesis.block
+      - ./crypto-config/ordererOrganizations/hientang.com/orderers/orderer3.hientang.com/msp:/var/hyperledger/orderer/msp
+      - ./crypto-config/ordererOrganizations/hientang.com/orderers/orderer3.hientang.com/tls/:/var/hyperledger/orderer/tls
+      - orderer3.hientang.com:/var/hyperledger/production/orderer
+    ports:
+      - 9050:7050
+
+  orderer4.hientang.com:
+    extends:
+      file: base/peer-base.yaml
+      service: orderer-base
+    container_name: orderer4.hientang.com
+    networks:
+      - hientang
+    volumes:
+      - ./channel-artifacts/genesis.block:/var/hyperledger/orderer/orderer.genesis.block
+      - ./crypto-config/ordererOrganizations/hientang.com/orderers/orderer4.hientang.com/msp:/var/hyperledger/orderer/msp
+      - ./crypto-config/ordererOrganizations/hientang.com/orderers/orderer4.hientang.com/tls/:/var/hyperledger/orderer/tls
+      - orderer4.hientang.com:/var/hyperledger/production/orderer
+    ports:
+      - 10050:7050
+
+  orderer5.hientang.com:
+    extends:
+      file: base/peer-base.yaml
+      service: orderer-base
+    container_name: orderer5.hientang.com
+    networks:
+      - hientang
+    volumes:
+      - ./channel-artifacts/genesis.block:/var/hyperledger/orderer/orderer.genesis.block
+      - ./crypto-config/ordererOrganizations/hientang.com/orderers/orderer5.hientang.com/msp:/var/hyperledger/orderer/msp
+      - ./crypto-config/ordererOrganizations/hientang.com/orderers/orderer5.hientang.com/tls/:/var/hyperledger/orderer/tls
+      - orderer5.hientang.com:/var/hyperledger/production/orderer
+    ports:
+      - 11050:7050
