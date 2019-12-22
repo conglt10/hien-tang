@@ -3,8 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-
-	"github.com/hyperledger/fabric/core/chaincode/lib/cid"
+	//"github.com/hyperledger/fabric/core/chaincode/lib/cid"
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 	sc "github.com/hyperledger/fabric/protos/peer"
 )
@@ -16,18 +15,19 @@ type Giver struct {
 	PassportID string
 	FullName string
 	Blood string
-	Organ string `json:"organ"`
+	Organ string
 }
 
 type Receiver struct {
 	PassportID string
 	FullName string
 	Blood string
-	Organ string `json:"organ"`
+	Organ string
 	Hospital string
 }
 
 type Pair struct {
+	PairID string
 	GiverInfo string
 	ReceiverInfo string
 	Hospital string
@@ -71,7 +71,7 @@ func QueryGiver(stub shim.ChaincodeStubInterface, args []string) sc.Response {
 	PassportID = args[0]
 
 	key := "Giver-" + PassportID
-	passportAsBytes, err := stub.GetState(PassportID)
+	passportAsBytes, err := stub.GetState(key)
 
 	if err != nil {
 		return shim.Error("Failed")
@@ -95,7 +95,7 @@ func QueryReceiver(stub shim.ChaincodeStubInterface, args []string) sc.Response 
 	PassportID = args[0]
 
 	key := "Receiver-" + PassportID
-	passportAsBytes, err := stub.GetState(PassportID)
+	passportAsBytes, err := stub.GetState(key)
 
 	if err != nil {
 		return shim.Error("Failed")
@@ -109,6 +109,26 @@ func QueryReceiver(stub shim.ChaincodeStubInterface, args []string) sc.Response 
 }
 
 func QueryPair(stub shim.ChaincodeStubInterface, args []string) sc.Response {	
+	var PairID string
+
+	if len(args) != 1 {
+		return shim.Error("Incorrect number of arguments. Expecting 1")
+	}
+
+	PairID = args[0]
+
+	key := "Pair-" + PairID
+	pairAsBytes, err := stub.GetState(key)
+
+	if err != nil {
+		return shim.Error("Failed")
+	}
+
+	if pairAsBytes == nil {
+		return shim.Error("pair does not exist - " + args[0])
+	}
+
+	return shim.Success(pairAsBytes)
 }
 
 func GetAllGiver(stub shim.ChaincodeStubInterface) sc.Response {

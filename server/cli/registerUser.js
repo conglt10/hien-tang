@@ -19,18 +19,12 @@ mongoose.connect(
 );
 mongoose.set('useCreateIndex', true);
 
-/**
- * Register user for org
- * @param  {String} orgMSP  Org Name (default: student)
- * @param  {String} username User Name (required)
- */
-
 async function main() {
   try {
     let username;
     let password;
     let fullname;
-    let orgMSP = 'student';
+    let orgMSP = 'bachmai';
     let admin;
 
     if (!argv.username) {
@@ -55,11 +49,11 @@ async function main() {
     if (argv.orgMSP) {
       orgMSP = argv.orgMSP.toString();
     }
-    if (orgMSP === 'student') {
-      admin = process.env.ADMIN_STUDENT_USERNAME;
+    if (orgMSP === 'bachmai') {
+      admin = process.env.ADMIN_BACHMAI_USERNAME;
     }
     if (orgMSP === 'academy') {
-      admin = process.env.ADMIN_ACADEMY_USERNAME;
+      admin = process.env.ADMIN_CHORAY_USERNAME;
     }
 
     let nameMSP = await changeCaseFirstLetter(orgMSP);
@@ -96,61 +90,59 @@ async function main() {
     // Get the CA client object from the gateway for interacting with the CA.
     const ca = gateway.getClient().getCertificateAuthority();
     const adminIdentity = gateway.getCurrentIdentity();
-    const network = await gateway.getNetwork('certificatechannel');
-    const contract = await network.getContract('academy');
+    const network = await gateway.getNetwork('hientangchannel');
+    const contract = await network.getContract('hientang');
 
     let user;
 
-    if (orgMSP === 'student') {
-      await contract.submitTransaction('CreateStudent', username, fullname);
+    if (orgMSP === 'bachmai') {
       user = new User({
         username: username,
         password: password,
-        role: USER_ROLES.STUDENT
+        role: USER_ROLES.DOCTOR_BACHMAI
       });
-    } else if (orgMSP === 'academy') {
-      await contract.submitTransaction('CreateTeacher', username, fullname);
+    } else if (orgMSP === 'choray') {
       user = new User({
         username: username,
         password: password,
-        role: USER_ROLES.TEACHER
+        role: USER_ROLES.DOCTOR_CHORAY
       });
     }
 
-    await user.save(async (err, user) => {
-      if (err) throw err;
-      if (user) {
-        //Register the user, enroll the user, and import the new identity into the wallet.
-        const secret = await ca.register(
-          {
-            affiliation: '',
-            enrollmentID: user.username,
-            role: 'client',
-            attrs: [{ name: 'username', value: user.username, ecert: true }]
-          },
-          adminIdentity
-        );
+    let userSaved = await user.save();
 
-        const enrollment = await ca.enroll({
+    if (userSaved) {
+      //Register the user, enroll the user, and import the new identity into the wallet.
+      const secret = await ca.register(
+        {
+          affiliation: '',
           enrollmentID: user.username,
-          enrollmentSecret: secret
-        });
+          role: 'client',
+          attrs: [{ name: 'username', value: user.username, ecert: true }]
+        },
+        adminIdentity
+      );
 
-        const userIdentity = X509WalletMixin.createIdentity(
-          `${nameMSP}MSP`,
-          enrollment.certificate,
-          enrollment.key.toBytes()
-        );
+      const enrollment = await ca.enroll({
+        enrollmentID: user.username,
+        enrollmentSecret: secret
+      });
 
-        await wallet.import(user.username, userIdentity);
+      const userIdentity = X509WalletMixin.createIdentity(
+        `${nameMSP}MSP`,
+        enrollment.certificate,
+        enrollment.key.toBytes()
+      );
 
-        console.log(
-          `Successfully registered and enrolled user ${user.username} and imported it into the wallet`
-        );
-      }
-      await gateway.disconnect();
-      process.exit(0);
-    });
+      await wallet.import(user.username, userIdentity);
+
+      console.log(
+        `Successfully registered and enrolled user ${user.username} and imported it into the wallet`
+      );
+    }
+
+    await gateway.disconnect();
+    process.exit(0);
   } catch (error) {
     process.exit(1);
   }

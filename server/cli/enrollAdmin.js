@@ -8,6 +8,7 @@ const argv = require('yargs').argv;
 const User = require('../models/User');
 const USER_ROLES = require('../configs/constant').USER_ROLES;
 const mongoose = require('mongoose');
+
 require('dotenv').config();
 
 // Connect database
@@ -18,13 +19,7 @@ mongoose.connect(
     if (error) console.log(error);
   }
 );
-
 mongoose.set('useCreateIndex', true);
-/**
- * Create admin for Org
- * @param  {String} orgMSP Org Name (default: bachmai)
- * @param  {String} username Admin Username (default: admin)
- */
 
 async function main() {
   try {
@@ -43,8 +38,7 @@ async function main() {
 
     // Create a new CA client for interacting with the CA.
     const caInfo = ccp.certificateAuthorities[`ca.${orgMSP}.hientang.com`];
-    const caTLSCACertsPath = path.resolve(__dirname, '../..', 'network', caInfo.tlsCACerts.path);
-    const caTLSCACerts = fs.readFileSync(caTLSCACertsPath);
+    const caTLSCACerts = caInfo.tlsCACerts.pem;
     const ca = new FabricCAServices(
       caInfo.url,
       { trustedRoots: caTLSCACerts, verify: false },
@@ -55,11 +49,12 @@ async function main() {
     const walletPath = path.join(process.cwd(), `wallet-${orgMSP}`);
     const wallet = new FileSystemWallet(walletPath);
 
+    let usernameAdmin = `ADMIN_${orgMSP.toUpperCase()}_USERNAME`;
     // Check to see if we've already enrolled the admin user.
-    const adminExists = await wallet.exists(process.env.ADMIN_STUDENT_USERNAME);
+    const adminExists = await wallet.exists(process.env.usernameAdmin);
     if (adminExists) {
       console.log(
-        `An identity for the admin user ${process.env.ADMIN_STUDENT_USERNAME} already exists in the wallet`
+        `An identity for the admin user ${process.env.usernameAdmin} already exists in the wallet`
       );
       return;
     }
@@ -68,39 +63,38 @@ async function main() {
 
     if (orgMSP === 'bachmai') {
       user = new User({
-        username: process.env.ADMIN_STUDENT_USERNAME,
-        password: process.env.ADMIN_STUDENT_PASSWORD,
+        username: process.env.ADMIN_BACHMAI_USERNAME,
+        password: process.env.ADMIN_BACHMAI_PASSWORD,
         role: USER_ROLES.ADMIN_BACHMAI
       });
     }
     if (orgMSP === 'choray') {
       user = new User({
-        username: process.env.ADMIN_ACADEMY_USERNAME,
-        password: process.env.ADMIN_ACADEMY_PASSWORD,
+        username: process.env.ADMIN_CHORAY_USERNAME,
+        password: process.env.ADMIN_CHORAY_PASSWORD,
         role: USER_ROLES.ADMIN_CHORAY
       });
     }
 
-    await user.save(async (err, user) => {
-      if (err) throw err;
-      if (user) {
-        // Enroll the admin user, and import the new identity into the wallet.
-        const enrollment = await ca.enroll({
-          enrollmentID: 'admin',
-          enrollmentSecret: 'adminpw'
-        });
-        const identity = await X509WalletMixin.createIdentity(
-          `${nameMSP}MSP`,
-          enrollment.certificate,
-          enrollment.key.toBytes()
-        );
-        await wallet.import(user.username, identity);
-        console.log(
-          `Successfully enrolled admin user ${user.username} and imported it into the wallet-${orgMSP}`
-        );
-        process.exit(0);
-      }
-    });
+    let userSaved = await user.save();
+
+    if (userSaved) {
+      // Enroll the admin user, and import the new identity into the wallet.
+      const enrollment = await ca.enroll({
+        enrollmentID: 'admin',
+        enrollmentSecret: 'adminpw'
+      });
+      const identity = await X509WalletMixin.createIdentity(
+        `${nameMSP}MSP`,
+        enrollment.certificate,
+        enrollment.key.toBytes()
+      );
+      await wallet.import(user.username, identity);
+      console.log(
+        `Successfully enrolled admin user ${user.username} and imported it into the wallet-${orgMSP}`
+      );
+      process.exit(0);
+    }
   } catch (error) {
     console.error(`Failed to enroll admin user "admin": ${error}`);
     process.exit(1);

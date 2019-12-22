@@ -2,10 +2,7 @@ package main
 
 import (
 	"encoding/json"
-
 	"fmt"
-	"strconv"
-
 	"github.com/hyperledger/fabric/core/chaincode/lib/cid"
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 	sc "github.com/hyperledger/fabric/protos/peer"
@@ -13,7 +10,7 @@ import (
 
 func CreateGiver(stub shim.ChaincodeStubInterface, args []string) sc.Response {
 
-	MSPID, err := cid.GetMSPID(stub)
+	_, err := cid.GetMSPID(stub)
 
 	if err != nil {
 		return shim.Error("Error - cide.GetMSPID()")
@@ -26,7 +23,7 @@ func CreateGiver(stub shim.ChaincodeStubInterface, args []string) sc.Response {
 	fmt.Println("Start Create Giver!")
 
 	PassportID := args[0]
-	Fullname := args[1]
+	FullName := args[1]
 	Blood := args[2]
 	Organ := args[3]
 
@@ -38,7 +35,7 @@ func CreateGiver(stub shim.ChaincodeStubInterface, args []string) sc.Response {
 		return shim.Error("This Giver already exists - " + PassportID)
 	}
 
-	var giver = Giver{PassportID: PassportID, Fullname: Fullname, Blood: Blood, Organ: Organ}
+	var giver = Giver{PassportID: PassportID, FullName: FullName, Blood: Blood, Organ: Organ}
 
 	giverAsBytes, _ := json.Marshal(giver)
 
@@ -49,7 +46,7 @@ func CreateGiver(stub shim.ChaincodeStubInterface, args []string) sc.Response {
 
 func CreateReceiver(stub shim.ChaincodeStubInterface, args []string) sc.Response {
 
-	MSPID, err := cid.GetMSPID(stub)
+	_, err := cid.GetMSPID(stub)
 
 	if err != nil {
 		return shim.Error("Error - cide.GetMSPID()")
@@ -62,7 +59,7 @@ func CreateReceiver(stub shim.ChaincodeStubInterface, args []string) sc.Response
 	fmt.Println("Start Create Giver!")
 
 	PassportID := args[0]
-	Fullname := args[1]
+	FullName := args[1]
 	Blood := args[2]
 	Organ := args[3]
 	Hospital := args[4]
@@ -75,7 +72,7 @@ func CreateReceiver(stub shim.ChaincodeStubInterface, args []string) sc.Response
 		return shim.Error("This Receiver already exists - " + PassportID)
 	}
 
-	var receiver = Receiver{PassportID: PassportID, Fullname: Fullname, Blood: Blood, Organ: Organ, Hospital: Hospital}
+	var receiver = Receiver{PassportID: PassportID, FullName: FullName, Blood: Blood, Organ: Organ, Hospital: Hospital}
 
 	receiverAsBytes, _ := json.Marshal(receiver)
 

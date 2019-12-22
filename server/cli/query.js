@@ -15,14 +15,8 @@ mongoose.connect(
     if (error) console.log(error);
   }
 );
-mongoose.set('useCreateIndex', true);
 
-/**
- * Query function of chaincode
- * @param  {String} func  Function Name (required)
- * @param  {String} username User Name (required)
- * @param  {String} args argument of function (optional)
- */
+mongoose.set('useCreateIndex', true);
 
 async function main() {
   try {
@@ -36,23 +30,22 @@ async function main() {
     let args = argv.args;
     let result;
 
-    await User.findOne({ username: username }, async (err, user) => {
-      if (err) throw next(err);
-      if (user) {
-        const networkObj = await conn.connectToNetwork(user, true);
+    let user = await User.findOne({ username: username });
 
-        if (typeof args === 'object') {
-          result = await networkObj.contract.evaluateTransaction(func, ...args);
-        } else if (args) {
-          args = args.toString();
-          result = await networkObj.contract.evaluateTransaction(func, args);
-        } else {
-          result = await networkObj.contract.evaluateTransaction(func);
-          console.log(`Transaction has been evaluated, result is a: ${result.toString()}`);
-        }
-        process.exit(0);
+    if (user) {
+      const networkObj = await conn.connectToNetwork(user, true);
+
+      if (typeof args === 'object') {
+        result = await networkObj.contract.evaluateTransaction(func, ...args);
+      } else if (args) {
+        args = args.toString();
+        result = await networkObj.contract.evaluateTransaction(func, args);
+      } else {
+        result = await networkObj.contract.evaluateTransaction(func);
+        console.log(`Transaction has been evaluated, result is a: ${result.toString()}`);
       }
-    });
+      process.exit(0);
+    }
   } catch (error) {
     console.error(`Failed to evaluate transaction: ${error}`);
     process.exit(1);

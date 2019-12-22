@@ -1,10 +1,13 @@
 'use strict';
 const User = require('../models/User');
 const USER_ROLES = require('../configs/constant').USER_ROLES;
-const Certificate = require('../models/Certificate');
+const Giver = require('../models/Giver');
+const Receiver = require('../models/Receiver');
+const User = require('../models/User');
 const { FileSystemWallet, Gateway, X509WalletMixin } = require('fabric-network');
 const path = require('path');
 const mongoose = require('mongoose');
+
 require('dotenv').config();
 
 // Connect database
@@ -15,16 +18,15 @@ mongoose.connect(
     if (error) console.log(error);
   }
 );
+
 mongoose.set('useCreateIndex', true);
 
 exports.connectToNetwork = async function(user, cli = false) {
   try {
-    let orgMSP = 'student';
+    let orgMSP = 'bachmai';
 
-    if (user.role == USER_ROLES.ADMIN_ACADEMY || user.role == USER_ROLES.TEACHER) {
-      orgMSP = 'academy';
-    } else if (user.role == USER_ROLES.ADMIN_STUDENT || user.role == USER_ROLES.STUDENT) {
-      orgMSP = 'student';
+    if (user.role == USER_ROLES.ADMIN_CHORAY || user.role == USER_ROLES.DOCTOR_CHORAY) {
+      orgMSP = 'choray';
     } else {
       let response = {};
       response.error =
@@ -68,8 +70,8 @@ exports.connectToNetwork = async function(user, cli = false) {
         discovery: { enabled: true, asLocalhost: true }
       });
 
-      const network = await gateway.getNetwork('certificatechannel');
-      const contract = await network.getContract('academy');
+      const network = await gateway.getNetwork('hientangchannel');
+      const contract = await network.getContract('hientang');
 
       networkObj = {
         contract: contract,
@@ -118,38 +120,15 @@ exports.query = async function(networkObj, func, args) {
   }
 };
 
-exports.verifyCertificate = async function(networkObj, certificate) {
-  let response = {
-    success: false,
-    msg: ''
-  };
-  try {
-    response.msg = await networkObj.contract.evaluateTransaction(
-      'VerifyCertificate',
-      certificate.certificateID,
-      certificate.subjectID,
-      certificate.username
-    );
-
-    await networkObj.gateway.disconnect();
-    response.success = true;
-    return response;
-  } catch (error) {
-    response.success = false;
-    response.msg = error;
-    return response;
-  }
-};
-
-exports.registerTeacherOnBlockchain = async function(networkObj, createdUser) {
+exports.registerDoctorOnBlockchain = async function(networkObj, createdUser, orgMSP) {
   if (!createdUser.username) {
     let response = {};
     response.error = 'Error! You need to fill all fields before you can register!';
     return response;
   }
 
-  var orgMSP = 'academy';
-  var nameMSP = 'Academy';
+  let nameMSP = changeCaseFirstLetter(orgMSP);
+  let roleUser = `DOCTOR_${orgMSP.toUpperCase()}`;
 
   try {
     const ccpPath = path.resolve(__dirname, '../..', 'network', `connection-${orgMSP}.json`);
@@ -166,313 +145,49 @@ exports.registerTeacherOnBlockchain = async function(networkObj, createdUser) {
     const ca = await networkObj.gateway.getClient().getCertificateAuthority();
     const adminIdentity = await networkObj.gateway.getCurrentIdentity();
 
-    await networkObj.contract.submitTransaction(
-      'CreateTeacher',
-      createdUser.username,
-      createdUser.fullname
-    );
-
-    let teacher = new User({
+    let doctor = new User({
       username: createdUser.username,
-      password: process.env.TEACHER_DEFAULT_PASSWORD,
+      password: process.env.DOCTOR_DEFAULT_PASSWORD,
       fullname: createdUser.fullname,
-      role: USER_ROLES.TEACHER
+      role: USER_ROLES.roleUser
     });
 
-    await teacher.save(async (err, user) => {
-      if (err) throw err;
-      if (user) {
-        const secret = await ca.register(
-          {
-            affiliation: '',
-            enrollmentID: user.username,
-            role: 'client',
-            attrs: [{ name: 'username', value: user.username, ecert: true }]
-          },
-          adminIdentity
-        );
+    let user = await doctor.save();
 
-        const enrollment = await ca.enroll({
+    if (user) {
+      const secret = await ca.register(
+        {
+          affiliation: '',
           enrollmentID: user.username,
-          enrollmentSecret: secret
-        });
+          role: 'client',
+          attrs: [{ name: 'username', value: user.username, ecert: true }]
+        },
+        adminIdentity
+      );
 
-        const userIdentity = X509WalletMixin.createIdentity(
-          `${nameMSP}MSP`,
-          enrollment.certificate,
-          enrollment.key.toBytes()
-        );
+      const enrollment = await ca.enroll({
+        enrollmentID: user.username,
+        enrollmentSecret: secret
+      });
 
-        await wallet.import(user.username, userIdentity);
-      }
-    });
-    let response = {
-      success: true,
-      msg: 'Register success!'
-    };
+      const userIdentity = X509WalletMixin.createIdentity(
+        `${nameMSP}MSP`,
+        enrollment.certificate,
+        enrollment.key.toBytes()
+      );
 
-    await networkObj.gateway.disconnect();
-    return response;
-  } catch (error) {
-    console.error(`Failed to register!`);
-    let response = {
-      success: false,
-      msg: error
-    };
-    return response;
-  }
-};
-
-exports.registerStudentOnBlockchain = async function(createdUser) {
-  let identity = createdUser.username;
-  var orgMSP = 'student';
-  var nameMSP = 'Student';
-
-  try {
-    const ccpPath = path.resolve(__dirname, '../..', 'network', `connection-${orgMSP}.json`);
-    const walletPath = path.join(process.cwd(), `/cli/wallet-${orgMSP}`);
-    const wallet = new FileSystemWallet(walletPath);
-
-    const userExists = await wallet.exists(identity);
-    if (userExists) {
-      let response = {
-        success: false,
-        msg: 'User already exist!'
-      };
-      return response;
+      await wallet.import(user.username, userIdentity);
     }
 
-    // Create a new gateway for connecting to our peer node.
-    const gateway = new Gateway();
-    await gateway.connect(ccpPath, {
-      wallet,
-      identity: process.env.ADMIN_STUDENT_USERNAME,
-      discovery: { enabled: true, asLocalhost: true }
-    });
-
-    // Get the CA client object from the gateway for interacting with the CA.
-    const ca = gateway.getClient().getCertificateAuthority();
-    const adminIdentity = gateway.getCurrentIdentity();
-    const network = await gateway.getNetwork('certificatechannel');
-    const contract = await network.getContract('academy');
-
-    await contract.submitTransaction('CreateStudent', identity, createdUser.fullname);
-
-    let user = new User({
-      username: identity,
-      oauthType: createdUser.oauthType,
-      password: createdUser.password ? createdUser.password : '',
-      fullname: createdUser.fullname,
-      role: USER_ROLES.STUDENT
-    });
-
-    await user.save(async (err, user) => {
-      if (err) throw err;
-      if (user) {
-        const secret = await ca.register(
-          {
-            affiliation: '',
-            enrollmentID: identity,
-            role: 'client',
-            attrs: [{ name: 'username', value: identity, ecert: true }]
-          },
-          adminIdentity
-        );
-
-        const enrollment = await ca.enroll({
-          enrollmentID: identity,
-          enrollmentSecret: secret
-        });
-
-        const userIdentity = X509WalletMixin.createIdentity(
-          `${nameMSP}MSP`,
-          enrollment.certificate,
-          enrollment.key.toBytes()
-        );
-
-        await wallet.import(identity, userIdentity);
-      }
-    });
-
     let response = {
       success: true,
       msg: 'Register success!'
     };
 
-    await gateway.disconnect();
+    await networkObj.gateway.disconnect();
     return response;
   } catch (error) {
     console.error(`Failed to register!`);
-    let response = {
-      success: false,
-      msg: error
-    };
-    return response;
-  }
-};
-
-exports.createSubject = async function(networkObj, subject) {
-  if (!subject.subjectID || !subject.subjectName) {
-    let response = {};
-    response.error = 'Error! You need to fill all fields before you can register!';
-    return response;
-  }
-
-  try {
-    await networkObj.contract.submitTransaction(
-      'CreateSubject',
-      subject.subjectID,
-      subject.subjectName
-    );
-    let response = {
-      success: true,
-      msg: 'Create success!'
-    };
-
-    await networkObj.gateway.disconnect();
-    return response;
-  } catch (error) {
-    let response = {
-      success: false,
-      msg: error
-    };
-    return response;
-  }
-};
-
-exports.createScore = async function(networkObj, score) {
-  if (!score.subjectID || !score.studentUsername || !score.scoreValue) {
-    let response = {};
-    response.error = 'Error! You need to fill all fields before you can register!';
-    return response;
-  }
-
-  try {
-    await networkObj.contract.submitTransaction(
-      'CreateScore',
-      score.subjectID,
-      score.studentUsername,
-      score.scoreValue
-    );
-    let response = {
-      success: true,
-      msg: 'Create success!'
-    };
-
-    await networkObj.gateway.disconnect();
-    return response;
-  } catch (error) {
-    let response = {
-      success: false,
-      msg: error
-    };
-    return response;
-  }
-};
-
-exports.createCertificate = async function(networkObj, certificate) {
-  if (
-    !certificate.certificateID ||
-    !certificate.subjectID ||
-    !certificate.studentUsername ||
-    !certificate.issueDate
-  ) {
-    let response = {};
-    response.error = 'Error! You need to fill all fields before you can register!';
-    return response;
-  }
-
-  try {
-    await networkObj.contract.submitTransaction(
-      'CreateCertificate',
-      certificate.certificateID,
-      certificate.subjectID,
-      certificate.studentUsername,
-      certificate.issueDate
-    );
-
-    let certificateData = new Certificate({
-      certificateID: certificate.certificateID,
-      subjectID: certificate.subjectID,
-      username: certificate.studentUsername,
-      issueDate: certificate.issueDate
-    });
-
-    await certificateData.save(async (err, cert) => {
-      if (err) {
-        return (response = {
-          success: false,
-          msg: error
-        });
-      }
-    });
-
-    let response = {
-      success: true,
-      msg: 'Create success!'
-    };
-
-    await networkObj.gateway.disconnect();
-    return response;
-  } catch (error) {
-    let response = {
-      success: false,
-      msg: error
-    };
-    return response;
-  }
-};
-
-exports.registerTeacherForSubject = async function(networkObj, subjectID, teacherUsername) {
-  if (!subjectID || !teacherUsername) {
-    let response = {};
-    response.error = 'Error! You need to fill all fields before you can register!';
-    return response;
-  }
-
-  try {
-    await networkObj.contract.submitTransaction(
-      'TeacherRegisterSubject',
-      subjectID,
-      teacherUsername
-    );
-    let response = {
-      success: true,
-      msg: 'Create success!'
-    };
-
-    await networkObj.gateway.disconnect();
-    return response;
-  } catch (error) {
-    let response = {
-      success: false,
-      msg: error
-    };
-    return response;
-  }
-};
-
-exports.registerStudentForSubject = async function(networkObj, subjectID, studentUsername) {
-  console.log(subjectID);
-  if (!subjectID || !studentUsername) {
-    let response = {};
-    response.error = 'Error! You need to fill all fields before you can register!';
-    return response;
-  }
-  try {
-    await networkObj.contract.submitTransaction(
-      'StudentRegisterSubject',
-      subjectID,
-      studentUsername
-    );
-    let response = {
-      success: true,
-      msg: 'Create success!'
-    };
-
-    await networkObj.gateway.disconnect();
-    return response;
-  } catch (error) {
     let response = {
       success: false,
       msg: error
