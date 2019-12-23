@@ -127,7 +127,7 @@ installChaincode() {
   setGlobals $PEER $ORG
   VERSION=${3:-1.0}
   set -x
-  peer chaincode install -n bachmai -v ${VERSION} -l ${LANGUAGE} -p ${CC_SRC_PATH} >&log.txt
+  peer chaincode install -n hientang -v ${VERSION} -l ${LANGUAGE} -p ${CC_SRC_PATH} >&log.txt
   res=$?
   set +x
   cat log.txt
@@ -147,12 +147,12 @@ instantiateChaincode() {
   # the "-o" option
   if [ -z "$CORE_PEER_TLS_ENABLED" -o "$CORE_PEER_TLS_ENABLED" = "false" ]; then
     set -x
-    peer chaincode instantiate -o orderer.hientang.com:7050 -C $CHANNEL_NAME -n bachmai -l ${LANGUAGE} -v ${VERSION} -c '{"Args":[]}' -P "OR ('BachmaiMSP.peer','ChorayMSP.peer')" >&log.txt
+    peer chaincode instantiate -o orderer.hientang.com:7050 -C $CHANNEL_NAME -n hientang -l ${LANGUAGE} -v ${VERSION} -c '{"Args":[]}' -P "OR ('BachmaiMSP.peer','ChorayMSP.peer')" >&log.txt
     res=$?
     set +x
   else
     set -x
-    peer chaincode instantiate -o orderer.hientang.com:7050 --tls $CORE_PEER_TLS_ENABLED --cafile $ORDERER_CA -C $CHANNEL_NAME -n bachmai -l ${LANGUAGE} -v 1.0 -c '{"Args":[]}' -P "AND ('BachmaiMSP.peer','ChorayMSP.peer')" >&log.txt
+    peer chaincode instantiate -o orderer.hientang.com:7050 --tls $CORE_PEER_TLS_ENABLED --cafile $ORDERER_CA -C $CHANNEL_NAME -n hientang -l ${LANGUAGE} -v 1.0 -c '{"Args":[]}' -P "AND ('BachmaiMSP.peer','ChorayMSP.peer')" >&log.txt
     res=$?
     set +x
   fi
@@ -168,7 +168,7 @@ upgradeChaincode() {
   setGlobals $PEER $ORG
 
   set -x
-  peer chaincode upgrade -o orderer.hientang.com:7050 --tls $CORE_PEER_TLS_ENABLED --cafile $ORDERER_CA -C $CHANNEL_NAME -n bachmai -v 2.0 -c '{"Args":[]}' -P "OR ('BachmaiMSP.peer','ChorayMSP.peer')"
+  peer chaincode upgrade -o orderer.hientang.com:7050 --tls $CORE_PEER_TLS_ENABLED --cafile $ORDERER_CA -C $CHANNEL_NAME -n hientang -v 2.0 -c '{"Args":[]}' -P "OR ('BachmaiMSP.peer','ChorayMSP.peer')"
   res=$?
   set +x
   cat log.txt
@@ -193,7 +193,6 @@ chaincodeQuery() {
     sleep $DELAY
     echo "Attempting to Query $MESS_FOR_PEER ...$(($(date +%s) - starttime)) secs"
     set -x
-    # peer chaincode query -C $CHANNEL_NAME -n bachmai -c '{"Args":["QueryStudent", "20156425"]}' >&log.txt
     res=$?
     set +x
     test $res -eq 0 && VALUE=$(cat log.txt | awk '/Query Result/ {print $NF}')
@@ -338,12 +337,10 @@ chaincodeInvoke() {
   # it using the "-o" option
   if [ -z "$CORE_PEER_TLS_ENABLED" -o "$CORE_PEER_TLS_ENABLED" = "false" ]; then
     set -x
-    # peer chaincode invoke -o orderer.hientang.com:7050 -C $CHANNEL_NAME -n bachmai $PEER_CONN_PARMS -c '{"Args":["CreateStudent", "20156425", "Trinh Van Tan"]}' >&log.txt
     res=$?
     set +x
   else
     set -x
-    # peer chaincode invoke -o orderer.hientang.com:7050 --tls $CORE_PEER_TLS_ENABLED --cafile $ORDERER_CA -C $CHANNEL_NAME -n bachmai $PEER_CONN_PARMS -c '{"Args":["CreateStudent", "20156425", "Trinh Van Tan"]}' >&log.txt
     res=$?
     set +x
   fi
