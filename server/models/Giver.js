@@ -53,6 +53,10 @@ const GiverSchema = new Schema({
   organ: {
     type: String,
     required: [true, "can't be blank"]
+  },
+  status: {
+    type: String,
+    default: 'Available'
   }
 });
 

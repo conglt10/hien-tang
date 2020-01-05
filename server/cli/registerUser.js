@@ -91,7 +91,6 @@ async function main() {
     const ca = gateway.getClient().getCertificateAuthority();
     const adminIdentity = gateway.getCurrentIdentity();
     const network = await gateway.getNetwork('hientangchannel');
-    const contract = await network.getContract('hientang');
 
     let user;
 

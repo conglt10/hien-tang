@@ -3,7 +3,6 @@ const User = require('../models/User');
 const USER_ROLES = require('../configs/constant').USER_ROLES;
 const Giver = require('../models/Giver');
 const Receiver = require('../models/Receiver');
-const User = require('../models/User');
 const { FileSystemWallet, Gateway, X509WalletMixin } = require('fabric-network');
 const path = require('path');
 const mongoose = require('mongoose');
@@ -25,7 +24,7 @@ exports.connectToNetwork = async function(user, cli = false) {
   try {
     let orgMSP = 'bachmai';
 
-    if (user.role == USER_ROLES.ADMIN_CHORAY || user.role == USER_ROLES.DOCTOR_CHORAY) {
+    if (user.role === USER_ROLES.ADMIN_CHORAY || user.role === USER_ROLES.DOCTOR_CHORAY) {
       orgMSP = 'choray';
     } else {
       let response = {};
@@ -120,53 +119,65 @@ exports.query = async function(networkObj, func, args) {
   }
 };
 
-exports.registerDoctorOnBlockchain = async function(networkObj, createdUser, orgMSP) {
-  if (!createdUser.username) {
-    let response = {};
-    response.error = 'Error! You need to fill all fields before you can register!';
-    return response;
-  }
-
+exports.registerDoctorOnBlockchain = async function(doctor, orgMSP) {
+  let identity = doctor.username;
   let nameMSP = changeCaseFirstLetter(orgMSP);
-  let roleUser = `DOCTOR_${orgMSP.toUpperCase()}`;
 
   try {
     const ccpPath = path.resolve(__dirname, '../..', 'network', `connection-${orgMSP}.json`);
     const walletPath = path.join(process.cwd(), `/cli/wallet-${orgMSP}`);
     const wallet = new FileSystemWallet(walletPath);
 
-    const userExists = await wallet.exists(createdUser.username);
+    const userExists = await wallet.exists(identity);
     if (userExists) {
-      console.log(`An identity for the user ${createdUser.username} already exists in the wallet`);
+      let response = {
+        success: false,
+        msg: 'Doctor already exist!'
+      };
+      return response;
+    }
+
+    const adminIdentity = await wallet.get(orgMSP);
+    if (!adminIdentity) {
+      console.log('An identity for the admin user "admin" does not exist in the wallet');
+      console.log('Run the enrollAdmin.js application before retrying');
       return;
     }
 
-    // Get the CA client object from the gateway for interacting with the CA.
-    const ca = await networkObj.gateway.getClient().getCertificateAuthority();
-    const adminIdentity = await networkObj.gateway.getCurrentIdentity();
-
-    let doctor = new User({
-      username: createdUser.username,
-      password: process.env.DOCTOR_DEFAULT_PASSWORD,
-      fullname: createdUser.fullname,
-      role: USER_ROLES.roleUser
+    // Create a new gateway for connecting to our peer node.
+    const gateway = new Gateway();
+    await gateway.connect(ccpPath, {
+      wallet,
+      identity: process.env.ADMIN_STUDENT_USERNAME,
+      discovery: { enabled: true, asLocalhost: true }
     });
 
-    let user = await doctor.save();
+    // Get the CA client object from the gateway for interacting with the CA.
+    const ca = gateway.getClient().getCertificateAuthority();
+    const adminIdentity = gateway.getCurrentIdentity();
 
-    if (user) {
+    let user = new User({
+      username: identity,
+      password: doctor.password ? doctor.password : 'hientang',
+      fullname: doctor.fullname,
+      role: USER_ROLES.DOCTOR_`${toUpperCase(orgMSP)}`
+    });
+
+    let userSaved = await user.save();
+
+    if (userSaved) {
       const secret = await ca.register(
         {
           affiliation: '',
-          enrollmentID: user.username,
+          enrollmentID: identity,
           role: 'client',
-          attrs: [{ name: 'username', value: user.username, ecert: true }]
+          attrs: [{ name: 'username', value: identity, ecert: true }]
         },
         adminIdentity
       );
 
       const enrollment = await ca.enroll({
-        enrollmentID: user.username,
+        enrollmentID: identity,
         enrollmentSecret: secret
       });
 
@@ -176,7 +187,7 @@ exports.registerDoctorOnBlockchain = async function(networkObj, createdUser, org
         enrollment.key.toBytes()
       );
 
-      await wallet.import(user.username, userIdentity);
+      await wallet.import(identity, userIdentity);
     }
 
     let response = {
@@ -184,10 +195,92 @@ exports.registerDoctorOnBlockchain = async function(networkObj, createdUser, org
       msg: 'Register success!'
     };
 
-    await networkObj.gateway.disconnect();
+    await gateway.disconnect();
     return response;
   } catch (error) {
     console.error(`Failed to register!`);
+    let response = {
+      success: false,
+      msg: error
+    };
+    return response;
+  }
+};
+
+exports.verifyGiver = async function(networkObj, giver) {
+  if (!giver.passportID || !giver.fullname || !giver.blood || !giver.organ || !giver.status) {
+    let response = {};
+    response.error = 'Error! You need to fill all fields before you can verrify!';
+    return response;
+  }
+
+  try {
+    await networkObj.contract.submitTransaction(
+      'CreateGiver',
+      giver.passportID,
+      giver.fullname,
+      giver.blood,
+      giver.organ,
+      giver.status
+    );
+
+    const filter = { passportID: giver.passportID };
+    const update = { verified: true };
+    await Giver.findOneAndUpdate(filter, update);
+
+    let response = {
+      success: true,
+      msg: 'Verify success!'
+    };
+
+    await networkObj.gateway.disconnect();
+    return response;
+  } catch (error) {
+    let response = {
+      success: false,
+      msg: error
+    };
+    return response;
+  }
+};
+
+exports.verifyReceiver = async function(networkObj, receiver) {
+  if (
+    !receiver.passportID ||
+    !receiver.fullname ||
+    !receiver.blood ||
+    !receiver.organ ||
+    !receiver.hospital ||
+    !receiver.status
+  ) {
+    let response = {};
+    response.error = 'Error! You need to fill all fields before you can verrify!';
+    return response;
+  }
+
+  try {
+    await networkObj.contract.submitTransaction(
+      'CreateReceiver',
+      receiver.passportID,
+      receiver.fullname,
+      receiver.blood,
+      receiver.organ,
+      receiver.hospital,
+      receiver.status
+    );
+
+    const filter = { passportID: receiver.passportID };
+    const update = { verified: true };
+    await Receiver.findOneAndUpdate(filter, update);
+
+    let response = {
+      success: true,
+      msg: 'Verify success!'
+    };
+
+    await networkObj.gateway.disconnect();
+    return response;
+  } catch (error) {
     let response = {
       success: false,
       msg: error

@@ -57,6 +57,10 @@ const ReceiverSchema = new Schema({
   hospital: {
     type: String,
     required: [true, "can't be blank"]
+  },
+  status: {
+    type: String,
+    required: [true, "can't be blank"]
   }
 });
 
