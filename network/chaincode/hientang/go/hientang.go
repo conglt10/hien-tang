@@ -16,6 +16,7 @@ type Giver struct {
 	FullName string
 	Blood string
 	Organ string
+	Status string
 }
 
 type Receiver struct {
@@ -24,6 +25,7 @@ type Receiver struct {
 	Blood string
 	Organ string
 	Hospital string
+	Status string
 }
 
 type Pair struct {
