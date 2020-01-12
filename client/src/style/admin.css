@@ -1,0 +1,32 @@
+#admin {
+  min-height: 100vh;
+  background: linear-gradient(100deg, #0e044b, #6901df);
+  color: #fff;
+}
+
+label {
+  width: 25%;
+}
+
+div.form-group {
+  margin-left: 10%;
+  text-align: left;
+}
+
+.form-control {
+  display: inline-block;
+  width: 40% !important;
+}
+
+.form-check {
+  display: inline-block;
+  margin-right: 5px;
+}
+
+.label-secret {
+  font-weight: bold;
+}
+
+span.require {
+  color: red;
+}
