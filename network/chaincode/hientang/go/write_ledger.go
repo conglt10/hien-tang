@@ -83,7 +83,7 @@ func CreateReceiver(stub shim.ChaincodeStubInterface, args []string) sc.Response
 	return shim.Success(nil)
 }
 
-func Createpair(stub shim.ChaincodeStubInterface, args []string) sc.Response {
+func CreatePair(stub shim.ChaincodeStubInterface, args []string) sc.Response {
 
 	_, err := cid.GetMSPID(stub)
 
@@ -111,7 +111,7 @@ func Createpair(stub shim.ChaincodeStubInterface, args []string) sc.Response {
 		return shim.Error("This Pair already exists - " + PairID)
 	}
 
-	var pair = Pair{PairID: PairID, GiverInfo: GiverInfo, Receiver: ReceiverInfo, Hospital: Hospital}
+	var pair = Pair{PairID: PairID, GiverInfo: GiverInfo, ReceiverInfo: ReceiverInfo, Hospital: Hospital}
 
 	pairAsBytes, _ := json.Marshal(pair)
 
