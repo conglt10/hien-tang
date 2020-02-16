@@ -22,6 +22,7 @@ function Admin() {
     axios.post(`${urlServer}/auth/login`, { data }).then((res) => {
       console.log(res);
       console.log(res.data);
+      this.props.history.push('/dashboard');
     });
   };
 
