@@ -5,9 +5,9 @@ const bcrypt = require('bcryptjs');
 const { check, validationResult } = require('express-validator');
 let secretJWT = require('../configs/secret').secret;
 
-router.get('/checkToken', secretJWT, async (res, req) => {
-  res.sendStatus(200);
-});
+// router.get('/checkToken', secretJWT, async (req, res) => {
+//   return res.sendStatus(200);
+// });
 
 // Login
 router.post(

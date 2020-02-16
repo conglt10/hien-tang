@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import { Redirect } from 'react-router-dom';
+import axios from 'axios';
 
 export default function withAuth(ComponentToProtect) {
   return class extends Component {
@@ -12,18 +13,18 @@ export default function withAuth(ComponentToProtect) {
     }
 
     componentDidMount() {
-      fetch('/checkToken')
-        .then((res) => {
-          if (res.status === 200) {
-            this.setState({ loading: false });
-          } else {
-            this.props.history.push('/admin');
-            // const error = new Error(res.error);
-            // throw error;
+      const token = localStorage.getItem('token');
+
+      axios
+        .get(`http://localhost:8080/checkToken`, {
+          headers: {
+            authorization: `${token}`
           }
         })
-        .catch((err) => {
-          console.error(err);
+        .then((res) => {
+          this.setState({ loading: false });
+        })
+        .catch((error) => {
           this.setState({ loading: false, redirect: true });
         });
     }

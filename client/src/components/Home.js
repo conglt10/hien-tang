@@ -20,7 +20,7 @@ function Home() {
           <Button color='primary'>Đăng ký hiến tạng</Button>
         </Link>
 
-        <Link to='/giver'>
+        <Link to='/receiver'>
           <Button color='warning'>Đăng ký nhận tạng</Button>
         </Link>
       </div>

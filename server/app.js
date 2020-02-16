@@ -5,7 +5,7 @@ const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 const mongoose = require('mongoose');
 const helmet = require('helmet');
-//const checkJWT = require('./middlewares/check-jwt');
+const checkJWT = require('./middlewares/check-jwt');
 
 const app = express();
 
@@ -34,14 +34,6 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-app.use(
-  require('express-session')({
-    secret: process.env.EXPRESS_SESSION,
-    resave: false,
-    saveUninitialized: false
-  })
-);
-
 // set up cors to allow us to accept requests from our client
 app.use(
   cors({
@@ -52,6 +44,10 @@ app.use(
 );
 
 // Set up routes
+app.get('/checkToken', checkJWT, async (req, res) => {
+  res.sendStatus(200);
+});
+
 app.use('/auth', authRoutes);
 app.use('/register', registerRoutes);
 
