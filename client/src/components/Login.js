@@ -5,18 +5,21 @@ import { Button, Form, FormGroup, Label, Input } from 'reactstrap';
 import { useInput } from '../lib/useInput';
 import axios from 'axios';
 
-function Admin(props) {
+function Login(props) {
   const { value: username, bind: bindUsername } = useInput(null);
   const { value: password, bind: bindPassword } = useInput(null);
 
   const handleSubmit = (event) => {
     event.preventDefault();
 
-    //const urlServer = process.env.SERVER_URL;
-
     axios.post(`http://localhost:8080/auth/login`, { username, password }).then((res) => {
       localStorage.setItem('token', res.data.token);
-      props.history.push('/dashboard');
+
+      if (res.data.role === 1 || res.data.role === 2) {
+        props.history.push('/manage');
+      } else {
+        props.history.push('/doctor');
+      }
     });
   };
 
@@ -44,4 +47,4 @@ function Admin(props) {
   );
 }
 
-export default Admin;
+export default Login;

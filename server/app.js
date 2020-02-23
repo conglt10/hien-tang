@@ -6,6 +6,7 @@ const logger = require('morgan');
 const mongoose = require('mongoose');
 const helmet = require('helmet');
 const checkJWT = require('./middlewares/check-jwt');
+const ROLE = require('./configs/constant').USER_ROLES;
 
 const app = express();
 
@@ -13,6 +14,7 @@ require('dotenv').config();
 
 const authRoutes = require('./routes/auth');
 const registerRoutes = require('./routes/register');
+const doctorRoutes = require('./routes/doctor');
 
 // Connect database
 mongoose.connect(
@@ -44,12 +46,43 @@ app.use(
 );
 
 // Set up routes
-app.get('/checkToken', checkJWT, async (req, res) => {
-  res.sendStatus(200);
+app.get('/checkTokenAdmin', checkJWT, async (req, res) => {
+  try {
+    if (
+      req.decoded.user.role === ROLE.ADMIN_BACHMAI ||
+      req.decoded.user.role === ROLE.ADMIN_CHORAY
+    ) {
+      res.sendStatus(200);
+    } else {
+      throw new Error('Permission Denied');
+    }
+  } catch (error) {
+    return res.status(403).json({
+      msg: 'Check jwt admin failed'
+    });
+  }
+});
+
+app.get('/checkTokenDoctor', checkJWT, async (req, res) => {
+  try {
+    if (
+      req.decoded.user.role === ROLE.DOCTOR_BACHMAI ||
+      req.decoded.user.role === ROLE.DOCTOR_CHORAY
+    ) {
+      res.sendStatus(200);
+    } else {
+      throw new Error('Permission Denied');
+    }
+  } catch (error) {
+    return res.status(403).json({
+      msg: 'Check jwt admin failed'
+    });
+  }
 });
 
 app.use('/auth', authRoutes);
 app.use('/register', registerRoutes);
+app.use('/doctor', checkJWT, doctorRoutes);
 
 // catch 404 and forward to error handler
 app.use((req, res, next) => {

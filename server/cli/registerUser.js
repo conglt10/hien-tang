@@ -22,37 +22,31 @@ mongoose.set('useCreateIndex', true);
 async function main() {
   try {
     let username;
-    let password;
+    let password = '123123';
     let fullname;
     let orgMSP = 'bachmai';
     let admin;
 
-    if (!argv.username) {
-      console.log(`Username cannot undefined`);
-      return;
-    } else {
-      username = argv.username.toString();
-    }
-
-    if (!argv.password) {
-      console.log(`Password cannot undefined`);
-    } else {
+    if (argv.password) {
       password = argv.password.toString();
     }
 
-    if (!argv.fullname) {
-      console.log(`Fullname cannot undefined`);
+    if (!argv.username || !argv.fullname) {
+      console.log(`username or fullname undefined`);
+      return;
     } else {
+      username = argv.username.toString();
       fullname = argv.fullname.toString();
     }
 
     if (argv.orgMSP) {
       orgMSP = argv.orgMSP.toString();
     }
+
     if (orgMSP === 'bachmai') {
       admin = process.env.ADMIN_BACHMAI_USERNAME;
     }
-    if (orgMSP === 'academy') {
+    if (orgMSP === 'choray') {
       admin = process.env.ADMIN_CHORAY_USERNAME;
     }
 
@@ -96,14 +90,16 @@ async function main() {
 
     if (orgMSP === 'bachmai') {
       user = new User({
-        username: username,
-        password: password,
+        username,
+        password,
+        fullname,
         role: USER_ROLES.DOCTOR_BACHMAI
       });
     } else if (orgMSP === 'choray') {
       user = new User({
-        username: username,
-        password: password,
+        username,
+        password,
+        fullname,
         role: USER_ROLES.DOCTOR_CHORAY
       });
     }
