@@ -14,4 +14,4 @@ router.get('/allReceiver', async (req, res) => {
   return res.json(allReceiver);
 });
 
-module.exports = getData;
+module.exports = router;

@@ -1,11 +1,11 @@
 const router = require('express').Router();
 const Giver = require('../models/Giver');
 const Receiver = require('../models/Receiver');
-const { check, validationResult } = require('express-validator');
+const { body, validationResult } = require('express-validator');
 
 router.post('/giver', async (req, res) => {
   const {
-    passportid,
+    passportID,
     fullname,
     birthday,
     gender,
@@ -18,10 +18,10 @@ router.post('/giver', async (req, res) => {
     blood,
     secret,
     organ
-  } = req.body;
+  } = req.body.data;
 
   try {
-    let giverIsExist = await Giver.findOne({ passportID: passportid });
+    let giverIsExist = await Giver.findOne({ passportID: passportID });
 
     if (giverIsExist) {
       return res.status(409).json({
@@ -31,7 +31,7 @@ router.post('/giver', async (req, res) => {
     }
 
     let newGiver = new Giver({
-      passportid,
+      passportID,
       fullname,
       birthday,
       gender,
@@ -47,6 +47,11 @@ router.post('/giver', async (req, res) => {
     });
 
     await newGiver.save();
+
+    return res.status(200).json({
+      success: true,
+      msg: 'Register success'
+    });
   } catch (error) {
     return res.status(500).json({
       success: false,
@@ -57,7 +62,7 @@ router.post('/giver', async (req, res) => {
 
 router.post('/receiver', async (req, res) => {
   const {
-    passportid,
+    passportID,
     fullname,
     birthday,
     gender,
@@ -71,10 +76,10 @@ router.post('/receiver', async (req, res) => {
     secret,
     organ,
     hospital
-  } = req.body;
+  } = req.body.data;
 
   try {
-    let giverIsExist = await Giver.findOne({ passportID: passportid });
+    let giverIsExist = await Giver.findOne({ passportID: passportID });
 
     if (giverIsExist) {
       return res.status(409).json({
@@ -84,7 +89,7 @@ router.post('/receiver', async (req, res) => {
     }
 
     let newReceiver = new Receiver({
-      passportid,
+      passportID,
       fullname,
       birthday,
       gender,
@@ -109,4 +114,4 @@ router.post('/receiver', async (req, res) => {
   }
 });
 
-module.exports = register;
+module.exports = router;

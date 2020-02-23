@@ -1,0 +1,25 @@
+#dashboard {
+  min-height: 100vh;
+  background: linear-gradient(100deg, #0e044b, #6901df);
+  color: #fff;
+}
+
+button {
+  align: right;
+}
+
+/* .hello-title {
+  font-size: 3rem;
+}
+.hello-content {
+  font-size: 1.125rem;
+  font-style: italic;
+  max-width: 60%;
+  margin: 0 auto;
+}
+
+.home-button button {
+  margin-left: 0.5rem;
+  margin-right: 0.5rem;
+  font-size: 1.125rem;
+} */

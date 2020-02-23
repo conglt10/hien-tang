@@ -1,30 +1,32 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import '../style/giver.css';
 import { Button, Form, FormGroup, Label, Input } from 'reactstrap';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import { useInput } from '../lib/useInput';
 import axios from 'axios';
 
 function Giver() {
-  const { value: formality, bind: bindFormality, reset: reseFformality } = useInput(null);
-  const { value: passportID, bind: bindPassportID, reset: reseFpassportID } = useInput(null);
-  const { value: organ, bind: bindOrgan, reset: resetOrgan } = useInput(null);
-  const { value: fullname, bind: bindFullname, reset: resetFullname } = useInput(null);
-  const { value: secret, bind: bindSecret, reset: resetSecret } = useInput(true);
-  const { value: major, bind: bindMajor, reset: resetMajor } = useInput(null);
-  const { value: birthday, bind: bindBirthday, reset: resetBirthday } = useInput(null);
-  const { value: address, bind: bindAddress, reset: resetAddress } = useInput(null);
-  const { value: gender, bind: bindGender, reset: resetGender } = useInput(null);
-  const { value: company, bind: bindCompany, reset: resetCompany } = useInput(null);
-  const { value: blood, bind: bindBlood, reset: resetBlood } = useInput(null);
-  const { value: height, bind: bindHeight, reset: resetHeight } = useInput(null);
-  const { value: weight, bind: bindWeight, reset: resetWeight } = useInput(null);
-  const { value: phone, bind: bindPhone, reset: resetPhone } = useInput(null);
+  const { value: formality, bind: bindFormality } = useInput(null);
+  const { value: passportID, bind: bindPassportID } = useInput(null);
+  const { value: organ, bind: bindOrgan } = useInput('Tim');
+  const { value: fullname, bind: bindFullname } = useInput(null);
+  const { value: secret, bind: bindSecret } = useInput(true);
+  const { value: major, bind: bindMajor } = useInput(null);
+  const { value: birthday, bind: bindBirthday } = useInput(null);
+  const { value: address, bind: bindAddress } = useInput(null);
+  const { value: gender, bind: bindGender } = useInput('Nam');
+  const { value: company, bind: bindCompany } = useInput(null);
+  const { value: blood, bind: bindBlood } = useInput('AB');
+  const { value: height, bind: bindHeight } = useInput(null);
+  const { value: weight, bind: bindWeight } = useInput(null);
+  const { value: phone, bind: bindPhone } = useInput(null);
 
   const handleSubmit = (event) => {
     event.preventDefault();
 
-    const urlServer = process.env.SERVER_URL;
+    //const urlServer = process.env.SERVER_URL;
 
     const data = {
       formality,
@@ -43,23 +45,63 @@ function Giver() {
       passportID
     };
 
-    axios.post(`${urlServer}/giver`, { data }).then((res) => {
-      console.log(res);
-      console.log(res.data);
-    });
+    axios
+      .post(`http://localhost:8080/register/giver`, { data })
+      .then((res) => {
+        toast.success('Đăng ký thành công', {
+          position: 'top-right',
+          autoClose: 2000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true
+        });
+      })
+      .catch((error) => {
+        if (error.response.status === 409) {
+          toast.error('Bạn đã đăng ký với hệ thống', {
+            position: 'top-right',
+            autoClose: 2000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true
+          });
+        } else {
+          toast.error('Đăng ký không thành công', {
+            position: 'top-right',
+            autoClose: 2000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true
+          });
+        }
+      });
   };
 
   return (
     <div id='giver' className='pt-5'>
       <h3 className='text-white mb-4'>ĐƠN TỰ NGUYỆN HIẾN MÔ, BỘ PHẬN CƠ THỂ Ở NGƯỜI</h3>
+      <ToastContainer
+        position='top-right'
+        autoClose={2000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnVisibilityChange
+        draggable
+        pauseOnHover
+      />
       <Form onSubmit={handleSubmit}>
-        <FormGroup>
+        {/* <FormGroup>
           <Label for='formality'>Hình thức đăng ký hiến</Label>
           <Input type='select' name='formality' id='formality' {...bindFormality}>
             <option>Hiến mô tạng sau khi chết não</option>
             <option>Hiến mô tạng khi còn sống</option>
           </Input>
-        </FormGroup>
+        </FormGroup> */}
 
         <FormGroup>
           <Label for='organ'>

@@ -1,28 +1,22 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import '../style/admin.css';
 import { Button, Form, FormGroup, Label, Input } from 'reactstrap';
 import { useInput } from '../lib/useInput';
 import axios from 'axios';
 
-function Admin() {
-  const { value: username, bind: bindUsername, reset: resetUsername } = useInput(null);
-  const { value: password, bind: bindPassword, reset: resetPassword } = useInput(null);
+function Admin(props) {
+  const { value: username, bind: bindUsername } = useInput(null);
+  const { value: password, bind: bindPassword } = useInput(null);
 
   const handleSubmit = (event) => {
     event.preventDefault();
 
-    const urlServer = process.env.SERVER_URL;
+    //const urlServer = process.env.SERVER_URL;
 
-    const data = {
-      username,
-      password
-    };
-
-    axios.post(`${urlServer}/auth/login`, { data }).then((res) => {
-      console.log(res);
-      console.log(res.data);
-      this.props.history.push('/dashboard');
+    axios.post(`http://localhost:8080/auth/login`, { username, password }).then((res) => {
+      localStorage.setItem('token', res.data.token);
+      props.history.push('/dashboard');
     });
   };
 
