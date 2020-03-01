@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { Redirect } from 'react-router-dom';
 import axios from 'axios';
 
-export default function withAuth(ComponentToProtect) {
+export default function withAuthAdmin(ComponentToProtect) {
   return class extends Component {
     constructor() {
       super();
@@ -16,7 +16,7 @@ export default function withAuth(ComponentToProtect) {
       const token = localStorage.getItem('token');
 
       axios
-        .get(`http://localhost:8080/checkToken`, {
+        .get(`http://localhost:8080/checkTokenAdmin`, {
           headers: {
             authorization: `${token}`
           }
@@ -35,7 +35,7 @@ export default function withAuth(ComponentToProtect) {
         return null;
       }
       if (redirect) {
-        return <Redirect to='/admin' />;
+        return <Redirect to='/login' />;
       }
       return <ComponentToProtect {...this.props} />;
     }

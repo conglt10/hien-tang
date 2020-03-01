@@ -2,6 +2,7 @@ const router = require('express').Router();
 const Giver = require('../models/Giver');
 const Receiver = require('../models/Receiver');
 const { body, validationResult } = require('express-validator');
+const network = require('../fabric/network.js');
 
 router.post('/giver', async (req, res) => {
   const {

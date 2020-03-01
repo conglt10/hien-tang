@@ -1,9 +1,10 @@
-#dashboard {
+#manage_doctor {
   min-height: 100vh;
   background: linear-gradient(100deg, #0e044b, #6901df);
   color: #fff;
 }
 
-button {
-  align: right;
+th,
+tr {
+  color: #fff;
 }
